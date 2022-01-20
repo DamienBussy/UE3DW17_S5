@@ -30,7 +30,7 @@
     "@nestjs/platform-express": "^8.0.6",
     "@nestjs/typeorm": "^8.0.2",
     "bcrypt": "^5.0.1",
-    "mongoose": "^5.13.9",
+    "mongoose": "^5.13.14",
     "mysql2": "^2.3.3",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",

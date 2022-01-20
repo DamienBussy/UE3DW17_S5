@@ -1,22 +1,20 @@
+import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Users } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt'
 import { bcryptSaltRounds } from '../auth/constants';
+import { InjectModel } from '@nestjs/mongoose';
+import { Users, UsersDocument } from './schemas/users.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(Users)
-    private usersRepository: Repository<Users>
-) { }
-
-  async createUser(createUserDto: CreateUserDto) {
+  constructor(@InjectModel(Users.name) private usersModel: Model<UsersDocument>) {}
+  
+  async createUser(createUserDto: CreateUserDto): Promise<Users> {
+    const createdUsers = new this.usersModel(createUserDto);
     const hashpassword = await this.encrypt(createUserDto.password);
-    return await this.usersRepository.save({
+    return await this.createdUsers.save({
       firstname: createUserDto.firstname,
       lastname: createUserDto.lastname,
       email: createUserDto.email,
@@ -26,7 +24,7 @@ export class UsersService {
   }
 
   findAll() {
-    return this.usersRepository.find({ select: ["firstname", "lastname", "email", "role"] });
+    return this.usersModel.find({ select: ["firstname", "lastname", "email", "role"] });
   }
 
   async encrypt(password: string): Promise<any>  {
@@ -37,16 +35,16 @@ export class UsersService {
     return await bcrypt.compare(reqPass, dbPass);
   }
   
-  async findUser(query:any): Promise<Users> {
-    return this.usersRepository.findOne(query);
+  async findUser(query:any): Promise<Users[]> {
+    return this.usersModel.findOne(query);
   }
 
   findOne(id: number) {
-    return this.usersRepository.findOne(id);
+    return this.usersModel.findOne(id);
   }
 
   async findEmail(email: string) {
-    return await this.usersRepository.findOne({ email });
+    return await this.usersModel.findOne({ email });
   }
 
   async update(id:number, updateUserDto: UpdateUserDto) {
@@ -55,7 +53,7 @@ export class UsersService {
       const hashpassword = await this.encrypt(updateUserDto.password);
       user.password = hashpassword
     }
-      return await this.usersRepository.update(id,{
+      return await this.usersModel.update(id,{
         ...updateUserDto, ...user
       })
   }
@@ -71,7 +69,7 @@ export class UsersService {
   */
 
   remove(id: number) {
-      return this.usersRepository.delete(id);
+      return this.usersModel.delete(id);
   }
 
 }
